@@ -50,7 +50,7 @@ def seed(n):
 sun = pygame.image.load('planets/sun1.png')
 sun = pygame.transform.scale(sun,[80,80])
 hand = pygame.image.load('planets/hand.png')
-hand = pygame.transform.scale(hand,[100,100])
+hand = pygame.transform.scale(hand,[50,50])
 m_pla = 1
 m_sun = 500*m_pla
 G = 0.1
@@ -83,9 +83,12 @@ while True:
 
         # Draw it on image
         x,  y,  w,  h = track_window
+
         cv2.rectangle(frame,  (x,  y),  (x+w,  y+h),  255,  2)
         cv2.imshow('img2',  frame)
-        posHand = [x+w*0.5,y+h*0.5]
+
+        posHand = [int((len_x)*(1.0-(x+w/2.0)/640)),int((len_y/480.0)*(y+h/2.0))]
+        print posHand
 ################################################################################
     clock.tick(30)
     myDisplay.fill((255,255,255))
@@ -107,10 +110,10 @@ while True:
 
         if event.type == pygame.MOUSEBUTTONUP:
             n += 1
-            R = positions[0] - mice
+            R = positions[0] - posHand
             v = np.sqrt(G*m_sun)*np.array([R[1],-R[0]])/np.sqrt(np.sum(R*R))
             marbles.append(seed(np.random.randint(0,10)))
-            positions = np.reshape(np.append(positions,mice),(n,2))
+            positions = np.reshape(np.append(positions,posHand),(n,2))
             speeds = np.reshape(np.append(speeds,v),(n,2))
             mass = np.append(mass,m_pla)
 
