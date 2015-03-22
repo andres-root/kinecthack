@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 
 video_capture = cv2.VideoCapture(0)
-fgbg = cv2.BackgroundSubtractorMOG()
+fgbg = cv2.createBackgroundSubtractorMOG()
 
 while(1):
     ret, frame = video_capture.read()
