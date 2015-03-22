@@ -75,7 +75,9 @@ while True:
     ret, frame = cap.read()
 
     if ret is True:
-        hsv = cv2.cvtColor(frame,  cv2.COLOR_BGR2HSV)
+        hsv = cv2.cvtColor(frame,  cv2.COLOR_BGR2GRAY)
+        hsv[hsv < 230] = 255
+        hsv[hsv < 255] = 0
         dst = cv2.calcBackProject([hsv], [0], roi_hist, [0, 180], 1)
 
         # apply meanshift to get the new location
