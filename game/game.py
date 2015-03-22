@@ -5,25 +5,37 @@ pygame.init()
 
 # starts myDisplay
 #myDisplay = pygame.display.set_mode((1360,768),pygame.FULLSCREEN)
-len_x,len_y = 800,600
+len_x,len_y = 1366,768
 myDisplay = pygame.display.set_mode((len_x,len_y))
 
 background = pygame.image.load('background.jpg')
 
 # sets title
-pygame.display.set_caption('This is game!')
+pygame.display.set_caption('God in a box')
 
 # loads marbles
-n = 2
-seed = pygame.image.load('planet.png')
-seed = pygame.transform.scale(seed,[20,20])
-seed = seed.convert_alpha()
-marbles = [seed for i in range(n)]
+n = 1
+
+names = ['planets/'+str(i)+'.png' for i in range(10)]
+def seed(n):
+    ans = pygame.image.load(names[n])
+    ans = pygame.transform.scale(ans,[20,20])
+    return ans
+
+sun = pygame.image.load('planets/sun1.png')
+sun = pygame.transform.scale(sun,[80,80])
+m_pla = 1
+m_sun = 500*m_pla
+G = 0.1
+marbles = [sun]
 
 
-positions = np.random.random((n,2))*[len_x,len_y]
+positions = np.zeros((n,2))
 speeds = np.zeros((n,2))
+mass = np.empty(n)
 
+positions[0] =np.array([len_x,len_y])/2
+mass[0] = m_sun
 clock = pygame.time.Clock()
 t = 0
 # main loop
@@ -39,17 +51,20 @@ while True:
             pygame.quit()
             sys.exit()
 
+        if event.type == KEYUP:
+            if event.key == K_ESCAPE:
+                pygame.quit()
+                sys.exit()
+
         if event.type == pygame.MOUSEBUTTONUP:
             n += 1
-            marbles.append(seed)
+            R = positions[0] - mice
+            v = -np.sqrt(G*m_sun)*np.array([R[1],-R[0]])/np.sqrt(np.sum(R*R))
+            marbles.append(seed(np.random.randint(0,10)))
             positions = np.reshape(np.append(positions,mice),(n,2))
-            speeds = np.reshape(np.append(speeds,np.zeros(2)),(n,2))
-        if event.type == KEYDOWN:
-            if event.key == K_c:
-                n += 1
-                marbles.append(seed)
-                positions = np.reshape(np.append(positions,mice),(n,2))
-                speeds = np.reshape(np.append(speeds,np.zeros(2)),(n,2))
+            speeds = np.reshape(np.append(speeds,v),(n,2))
+            mass = np.append(mass,m_pla)
+
     #evolve
     for i in range(n):
         positions[i] += speeds[i]
@@ -59,16 +74,19 @@ while True:
             r = positions - positions[i]
             norm = (np.sum(r*r,axis=1))
             norm[i] = 100
-            if len(np.argwhere(norm < 20)) > 0:
+            boing = np.argwhere(norm < 80)
+            if len(boing) > 0:
+                speeds[i,0],speeds[i,1] = speeds[i,1],-speeds[i,0]
+                #speeds[boing,0],speeds[boing,1] = -speeds[boing,1],speeds[boing,0] 
                 pass
             else:
                 r_mice = mice-positions[i]
                 d_mice = np.sum(r_mice**2)
-                a_x = 5*(np.sum(r[:,0]/norm))
-                a_y = 5*(np.sum(r[:,1]/norm))
+                a_x = G*(np.sum(mass*r[:,0]/norm))
+                a_y = G*(np.sum(mass*r[:,1]/norm))
                 if d_mice > 40:
-                    a_x -= 10*r_mice[0]/d_mice
-                    a_y -= 10*r_mice[1]/d_mice
+                    a_x -= 0*G*r_mice[0]/d_mice
+                    a_y -= 0*G*r_mice[1]/d_mice
                 speeds[i,0] += a_x
                 speeds[i,1] += a_y
         marble = marbles[i]
