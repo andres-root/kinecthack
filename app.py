@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 import cv2
-import sys
 
-casc_path = sys.argv[1]
+
+casc_path = 'haarcascade_frontalface_default.xml'
 
 face_cascade = cv2.CascadeClassifier(casc_path)
 
@@ -12,10 +13,10 @@ while True:
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    faces = face_cascade.detectMultiscale(
+    faces = face_cascade.detectMultiScale(
         gray,
         scaleFactor=1.1,
-        ninNeighbors=5,
+        minNeighbors=5,
         minSize=(30, 30),
         flags=cv2.cv.CV_HAAR_SCALE_IMAGE
     )
