@@ -8,17 +8,6 @@ cap = cv2.VideoCapture(0)
 # take first frame of the video
 ret, frame = cap.read()
 
-boundaries = [
-    ([17, 15, 100], [50, 56, 200]),
-    ([86, 31, 4], [220, 88, 50]),
-    ([25, 146, 190], [62, 174, 250]),
-    ([103, 86, 65], [145, 133, 128])
-]
-
-for (lower, upper) in boundaries:
-    lower = np.array(lower, dtype="uint8")
-    upper = np.array(upper, dtype="uint8")
-
 # setup initial location of window
 r, h, c, w = 250, 90, 400, 125  # simply hardcoded the values
 track_window = (c, r, w, h)
@@ -51,8 +40,6 @@ while(1):
         k = cv2.waitKey(60) & 0xff
         if k == 27:
             break
-        else:
-            cv2.imwrite(chr(k)+".jpg", frame)
 
     else:
         break
