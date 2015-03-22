@@ -30,8 +30,8 @@ term_crit = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT,  10,  1)
 
 # starts myDisplay
 #myDisplay = pygame.display.set_mode((1360,768),pygame.FULLSCREEN)
-len_x,len_y = 800,600
-myDisplay = pygame.display.set_mode((len_x,len_y))
+len_x,len_y = 1360,768
+myDisplay = pygame.display.set_mode((len_x,len_y),pygame.FULLSCREEN)
 
 background = pygame.image.load('background.jpg')
 
@@ -66,6 +66,7 @@ mass[0] = m_sun
 clock = pygame.time.Clock()
 t = 0
 run = False
+hand_mass = 0
 # main loop
 
 while True:
@@ -75,9 +76,10 @@ while True:
     ret, frame = cap.read()
 
     if ret is True:
+
         hsv = cv2.cvtColor(frame,  cv2.COLOR_BGR2GRAY)
-        hsv[hsv < 230] = 255
-        hsv[hsv < 255] = 0
+        hsv[hsv > 230] = 0
+        hsv[hsv > 0] = 255
         dst = cv2.calcBackProject([hsv], [0], roi_hist, [0, 180], 1)
 
         # apply meanshift to get the new location
@@ -90,12 +92,12 @@ while True:
         cv2.imshow('img2',  frame)
 
         posHand = [int((len_x)*(1.0-(x+w/2.0)/640)),int((len_y/480.0)*(y+h/2.0))]
-        print posHand
+
 ################################################################################
     clock.tick(30)
     myDisplay.fill((255,255,255))
     myDisplay.blit(background, [0,0])
-    mice = np.array(pygame.mouse.get_pos())
+    mice = posHand
     for event in pygame.event.get():
         # no key is pressed
         if event.type == QUIT:
@@ -110,12 +112,18 @@ while True:
             if event.key == K_p:
                 run = not run
 
+            if event.key == K_r:
+                if hand_mass == 0:
+                    hand_mass = 500
+                else:
+                    hand_mass = 0
+
         if event.type == pygame.MOUSEBUTTONUP:
             n += 1
-            R = positions[0] - posHand
+            R = positions[0] - mice
             v = np.sqrt(G*m_sun)*np.array([R[1],-R[0]])/np.sqrt(np.sum(R*R))
             marbles.append(seed(np.random.randint(0,10)))
-            positions = np.reshape(np.append(positions,posHand),(n,2))
+            positions = np.reshape(np.append(positions,mice),(n,2))
             speeds = np.reshape(np.append(speeds,v),(n,2))
             mass = np.append(mass,m_pla)
 
@@ -136,7 +144,7 @@ while True:
                 norm[i] = 100
                 boing = np.argwhere(norm < 80)
                 if len(boing) > 0:
-                    speeds[i,0],speeds[i,1] = speeds[i,1],-speeds[i,0]
+                    speeds[i,0],speeds[i,1] = speeds[i,1]/mass[i],-speeds[i,0]/mass[i]
                     #speeds[boing,0],speeds[boing,1] = -speeds[boing,1],speeds[boing,0]
                     pass
                 else:
@@ -144,7 +152,11 @@ while True:
                     d_mice = np.sum(r_mice**2)
                     a_x = G*(np.sum(mass*r[:,0]/norm))
                     a_y = G*(np.sum(mass*r[:,1]/norm))
-
+                    if 200 > d_mice > 150 :
+                        #a_x -= G*hand_mass*(np.sum(r_mice[0]/d_mice))
+                        #a_y -= G*hand_mass*(np.sum(r_mice[1]/d_mice))
+                        a_x -= 5
+                        a_y -= 5
                     speeds[i,0] += a_x
                     speeds[i,1] += a_y
         marble = marbles[i]
